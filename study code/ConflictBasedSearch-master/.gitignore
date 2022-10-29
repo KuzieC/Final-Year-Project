@@ -1,0 +1,72 @@
+<<<<<<< HEAD
+
+cmake-build-debug
+.idea
+CMakeLists.txt
+
+=======
+.idea
+cmake-build-debug
+CMakeLists.txt
+
+
+
+>>>>>>> 3f52c6e3ab2df89014ab7331fadbee9d8aded953
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+#Bla
+*.suo
+*.db
+*.ipch
+*.pdb
+*.ilk
+*.log
+*.idb
+*.tlog
+
+*.user
+*.filters
+*.vcxproj
+
+
+/ConflictBasedSearch.sln
+/ConflictBasedSearch/pch.cpp
+/ConflictBasedSearch/pch.h
+/.vs/ConflictBasedSearch/v15/Browse.VC.opendb
+/Conflict based search for optimal multi-agent pathfinding.pdf
+/Conflict-Based Search with Optimal Task Assignment.pdf
+/ICBS.pdf
+/experiments.JPG
+/MAPF.png
+
