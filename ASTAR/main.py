@@ -16,9 +16,13 @@ def main():
             (39, 13), (41, 13), (39, 15), (41, 15), (39, 17), (41, 17), (39, 19), (41, 19), (39, 21), (41, 21),
             (25, 23), (25, 25), (25, 27), (25, 29), (25, 31),
             (27, 23), (27, 25), (27, 27), (27, 29), (27, 31)]
+
+
     p = Planner(grid_size, robot_radius, length, height, map1)
-    path = p.plan((5, 7), (19, 5), {0: {(0, 0)}})
-    plot(length, height, grid_size, path, map1)
+    path1 = p.plan((5, 7), (19,5), {0: {(0, 0)}})
+    path2 = p.plan((19, 5), (5,7), {0: {(0, 0)}})
+    plot(length, height, grid_size, path1, map1)
+    plot(length, height, grid_size, path2, map1)
 
 
 main()
