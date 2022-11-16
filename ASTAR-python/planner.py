@@ -1,12 +1,12 @@
-from typing import Tuple, List, Dict, Set
-from heapq import heappush, heappop
+from heapq import heappop, heappush
+from typing import Dict, List, Set, Tuple
+
 import numpy as np
 from scipy.spatial import KDTree
 
-from neighbour_table import NeighbourTable
 from grid import Grid
+from neighbour_table import NeighbourTable
 from state import State
-
 
 
 class Planner:
