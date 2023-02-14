@@ -10,35 +10,94 @@ Conflict normal(0, 0, Cell(0, 0), Cell(0, 0), 0);
 Conflict edge(0, 0, Cell(0, 0), Cell(0, 0), 0);
 
 // Returns true if there is a conflict between two given routes
+// normal conflict detection, four to four, leni/lenj is the side length of two square
 bool HighLevelSolver::hasConflict(const std::vector<Cell> &route1, const std::vector<Cell> &route2, int leni, int lenj)
 {
 	auto min_index = std::min(route1.size(), route2.size());
-	for (int i = 0; i < min_index; i++)
-	{
-		Cell temp[8];
-		temp[0] = Cell(route1[i].x,        route1[i].y);
-		temp[1] = Cell(route1[i].x + leni, route1[i].y);
-		temp[2] = Cell(route1[i].x,        route1[i].y + leni);
-		temp[3] = Cell(route1[i].x + leni, route1[i].y + leni);
-		temp[4] = Cell(route2[i].x,        route2[i].y);
-		temp[5] = Cell(route2[i].x + lenj, route2[i].y);
-		temp[6] = Cell(route2[i].x,        route2[i].y + lenj);
-		temp[7] = Cell(route2[i].x + lenj, route2[i].y + lenj);
-		for (int m = 0; m < 7; m++)
-		{
-			for (int n = m + 1; n < 8; n++)
-			{
-				if (temp[m] == temp[n])
-				{
-					normal = Conflict(i, i, temp[m], temp[n], i);
+	//check for size 0 square 
+	if(leni == 0){
+		if(lenj == 0){
+			for (int i = 0; i < min_index; i ++){
+				if(route1[i] == route2[i]){
+					normal = Conflict(i,i,route1[i],route2[i],i);
 					return true;
+				}
+			}
+		}
+		else{
+			for (int i = 0; i < min_index; i++)
+			{
+				Cell temp[5];
+				temp[0] = Cell(route2[i].x,        route2[i].y);
+				temp[1] = Cell(route2[i].x + lenj, route2[i].y);
+				temp[2] = Cell(route2[i].x,        route2[i].y + lenj);
+				temp[3] = Cell(route2[i].x + lenj, route2[i].y + lenj);
+				temp[4] = Cell(route1[i].x       , route1[i].y);
+				for (int m = 0; m < 4; m++)
+				{
+					for (int n = m + 1; n < 5; n++)
+					{
+						if (temp[m] == temp[n])
+						{
+							normal = Conflict(i, i, temp[m], temp[n], i);
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	else if(lenj == 0){
+		for (int i = 0; i < min_index; i++)
+			{
+				Cell temp[5];
+				temp[0] = Cell(route1[i].x,        route1[i].y);
+				temp[1] = Cell(route1[i].x + leni, route1[i].y);
+				temp[2] = Cell(route1[i].x,        route1[i].y + leni);
+				temp[3] = Cell(route1[i].x + leni, route1[i].y + leni);
+				temp[4] = Cell(route2[i].x       , route2[i].y);
+				for (int m = 0; m < 4; m++)
+				{
+					for (int n = m + 1; n < 5; n++)
+					{
+						if (temp[m] == temp[n])
+						{
+							normal = Conflict(i, i, temp[m], temp[n], i);
+							return true;
+						}
+					}
+				}
+			}
+
+	}
+	else {
+		for (int i = 0; i < min_index; i++)
+		{
+			Cell temp[8];
+			temp[0] = Cell(route1[i].x,        route1[i].y);
+			temp[1] = Cell(route1[i].x + leni, route1[i].y);
+			temp[2] = Cell(route1[i].x,        route1[i].y + leni);
+			temp[3] = Cell(route1[i].x + leni, route1[i].y + leni);
+			temp[4] = Cell(route2[i].x,        route2[i].y);
+			temp[5] = Cell(route2[i].x + lenj, route2[i].y);
+			temp[6] = Cell(route2[i].x,        route2[i].y + lenj);
+			temp[7] = Cell(route2[i].x + lenj, route2[i].y + lenj);
+			for (int m = 0; m < 7; m++)
+			{
+				for (int n = m + 1; n < 8; n++)
+				{
+					if (temp[m] == temp[n])
+					{
+						normal = Conflict(i, i, temp[m], temp[n], i);
+						return true;
+					}
 				}
 			}
 		}
 	}
 	return false;
 }
-
+//overloader to extract solutions from node and compare
 bool HighLevelSolver::hasConflict(const TreeNode &node, const Map &map)
 {
 	auto solutions = node.getSolution();
@@ -57,37 +116,112 @@ bool HighLevelSolver::hasConflict(const TreeNode &node, const Map &map)
 }
 
 // Returns true if there is an edge conflict between two routes.
+//edge conflict detection, 
 bool HighLevelSolver::hasEdgeConflict(const std::vector<Cell> &route1, const std::vector<Cell> &route2, int leni, int lenj)
 {
-	auto min_route_size = std::min(route1.size(), route2.size()) - 1;
-	for (int i = 0; i < min_route_size; i++)
-	{
-		Cell temp[8];
-		temp[0] = Cell(route1[i].x,        route1[i].y);
-		temp[1] = Cell(route1[i].x + leni, route1[i].y);
-		temp[2] = Cell(route1[i].x,        route1[i].y + leni);
-		temp[3] = Cell(route1[i].x + leni, route1[i].y + leni);
-		temp[4] = Cell(route2[i].x,        route2[i].y);
-		temp[5] = Cell(route2[i].x + lenj, route2[i].y);
-		temp[6] = Cell(route2[i].x,        route2[i].y + lenj);
-		temp[7] = Cell(route2[i].x + lenj, route2[i].y + lenj);
-		Cell temp1[8];
-		temp1[0] = Cell(route1[i + 1].x,        route1[i + 1].y);
-		temp1[1] = Cell(route1[i + 1].x + leni, route1[i + 1].y);
-		temp1[2] = Cell(route1[i + 1].x,        route1[i + 1].y + leni);
-		temp1[3] = Cell(route1[i + 1].x + leni, route1[i + 1].y + leni);
-		temp1[4] = Cell(route2[i + 1].x,        route2[i + 1].y);
-		temp1[5] = Cell(route2[i + 1].x + lenj, route2[i + 1].y);
-		temp1[6] = Cell(route2[i + 1].x,        route2[i + 1].y + lenj);
-		temp1[7] = Cell(route2[i + 1].x + lenj, route2[i + 1].y + lenj);
-		for (int k = 0; k < 8; k++)
-		{
-			for (int j = 0; j < 8; j++)
+	auto min_index = std::min(route1.size(), route2.size()) - 1;
+	if(leni == 0){
+		if(lenj == 0){
+			for (int i = 0; i < min_index; i ++){
+					if (route1[i] == route2[i+1] && route1[i+1] == route2[i])
+					{
+						edge = Conflict(0, 0, route1[i], route2[i+1], i);
+						return true;
+					}
+
+
+			}
+		}
+		else{
+			for (int i = 0; i < min_index; i++)
 			{
-				if (temp[k] == temp1[j] && temp[j] == temp1[k])
+				int j = i+1;
+				Cell temp[5];
+				temp[0] = Cell(route2[i].x,        route2[i].y);
+				temp[1] = Cell(route2[i].x + lenj, route2[i].y);
+				temp[2] = Cell(route2[i].x,        route2[i].y + lenj);
+				temp[3] = Cell(route2[i].x + lenj, route2[i].y + lenj);
+				temp[4] = Cell(route1[i].x       , route1[i].y);
+				Cell temp1[5]; 
+				temp1[0] = Cell(route2[j].x,        route2[j].y);
+				temp1[1] = Cell(route2[j].x + lenj, route2[j].y);
+				temp1[2] = Cell(route2[j].x,        route2[j].y + lenj);
+				temp1[3] = Cell(route2[j].x + lenj, route2[j].y + lenj);
+				temp1[4] = Cell(route1[j].x       , route1[j].y);
+				for (int k = 0; k < 5; k++)
 				{
-					edge = Conflict(0, 0, temp[k], temp[j], i);
-					return true;
+					for (int j = 0; j < 5; j++)
+					{
+						if (temp[k] == temp1[j] && temp[j] == temp1[k])
+						{
+							edge = Conflict(0, 0, temp[k], temp[j], i);
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	else if(lenj == 0){
+		for (int i = 0; i < min_index ; i++)
+			{
+				int j = i+1;
+				Cell temp[5];
+				temp[0] = Cell(route1[i].x,        route1[i].y);
+				temp[1] = Cell(route1[i].x + leni, route1[i].y);
+				temp[2] = Cell(route1[i].x,        route1[i].y + leni);
+				temp[3] = Cell(route1[i].x + leni, route1[i].y + leni);
+				temp[4] = Cell(route2[i].x       , route2[i].y);
+				Cell temp1[5]; 
+				temp1[0] = Cell(route1[j].x,        route1[j].y);
+				temp1[1] = Cell(route1[j].x + leni, route1[j].y);
+				temp1[2] = Cell(route1[j].x,        route1[j].y + leni);
+				temp1[3] = Cell(route1[j].x + leni, route1[j].y + leni);
+				temp1[4] = Cell(route2[j].x       , route2[j].y);
+				for (int k = 0; k < 5; k++)
+				{
+					for (int j = 0; j < 5; j++)
+					{
+						if (temp[k] == temp1[j] && temp[j] == temp1[k])
+						{
+							edge = Conflict(0, 0, temp[k], temp[j], i);
+							return true;
+						}
+					}
+				}
+			}
+
+	}
+	else{
+		for (int i = 0; i < min_index; i++)
+		{
+			Cell temp[8];
+			temp[0] = Cell(route1[i].x,        route1[i].y);
+			temp[1] = Cell(route1[i].x + leni, route1[i].y);
+			temp[2] = Cell(route1[i].x,        route1[i].y + leni);
+			temp[3] = Cell(route1[i].x + leni, route1[i].y + leni);
+			temp[4] = Cell(route2[i].x,        route2[i].y);
+			temp[5] = Cell(route2[i].x + lenj, route2[i].y);
+			temp[6] = Cell(route2[i].x,        route2[i].y + lenj);
+			temp[7] = Cell(route2[i].x + lenj, route2[i].y + lenj);
+			Cell temp1[8];
+			temp1[0] = Cell(route1[i + 1].x,        route1[i + 1].y);
+			temp1[1] = Cell(route1[i + 1].x + leni, route1[i + 1].y);
+			temp1[2] = Cell(route1[i + 1].x,        route1[i + 1].y + leni);
+			temp1[3] = Cell(route1[i + 1].x + leni, route1[i + 1].y + leni);
+			temp1[4] = Cell(route2[i + 1].x,        route2[i + 1].y);
+			temp1[5] = Cell(route2[i + 1].x + lenj, route2[i + 1].y);
+			temp1[6] = Cell(route2[i + 1].x,        route2[i + 1].y + lenj);
+			temp1[7] = Cell(route2[i + 1].x + lenj, route2[i + 1].y + lenj);
+			for (int k = 0; k < 8; k++)
+			{
+				for (int j = 0; j < 8; j++)
+				{
+					if (temp[k] == temp1[j] && temp[j] == temp1[k])
+					{
+						edge = Conflict(0, 0, temp[k], temp[j], i);
+						return true;
+					}
 				}
 			}
 		}
@@ -113,42 +247,42 @@ bool HighLevelSolver::hasEdgeConflict(const TreeNode &node, const Map &map)
 	return false;
 }
 
-Conflict HighLevelSolver::getFirstConflict(const TreeNode &P)
-{
-	auto solutions = P.getSolution();
+// Conflict HighLevelSolver::getFirstConflict(const TreeNode &P)
+// {
+// 	auto solutions = P.getSolution();
 
-	// Look for normal conflicts first
-	for (int i = 0; i < solutions.size(); i++)
-	{
-		for (int j = i + 1; j < solutions.size(); j++)
-		{
-			auto min_index = std::min(solutions[i].size(), solutions[j].size());
-			for (int k = 0; k < min_index; k++)
-			{
-				if (solutions[i][k] == solutions[j][k])
-					return Conflict(i, j, solutions[i][k], solutions[i][k], k);
-			}
-		}
-	}
+// 	// Look for normal conflicts first
+// 	for (int i = 0; i < solutions.size(); i++)
+// 	{
+// 		for (int j = i + 1; j < solutions.size(); j++)
+// 		{
+// 			auto min_index = std::min(solutions[i].size(), solutions[j].size());
+// 			for (int k = 0; k < min_index; k++)
+// 			{
+// 				if (solutions[i][k] == solutions[j][k]) 
+// 					return Conflict(i, j, solutions[i][k], solutions[i][k], k);
+// 			}
+// 		}
+// 	}
 
-	// Look for Edge Conflicts if there is no normal conflicts
-	for (int i = 0; i < solutions.size(); i++)
-	{
-		for (int j = i + 1; j < solutions.size(); j++)
-		{
-			auto min_index = std::min(solutions[i].size(), solutions[j].size()) - 1;
-			for (int k = 0; k < min_index; k++)
-			{
-				auto route1 = solutions[i];
-				auto route2 = solutions[j];
-				if (route1[k] == route2[k + 1] && route1[k + 1] == route2[k])
-					return Conflict(i, j, route1[k + 1], route2[k + 1], k);
-			}
-		}
-	}
-	// Trivial. It is assured that this method is called only when there is conflict
-	return Conflict(0, 0, Cell(0, 0), Cell(0, 0), 0);
-}
+// 	// Look for Edge Conflicts if there is no normal conflicts
+// 	for (int i = 0; i < solutions.size(); i++)
+// 	{
+// 		for (int j = i + 1; j < solutions.size(); j++)
+// 		{
+// 			auto min_index = std::min(solutions[i].size(), solutions[j].size()) - 1;
+// 			for (int k = 0; k < min_index; k++)
+// 			{
+// 				auto route1 = solutions[i];
+// 				auto route2 = solutions[j];
+// 				if (route1[k] == route2[k + 1] && route1[k + 1] == route2[k])
+// 					return Conflict(i, j, route1[k + 1], route2[k + 1], k);
+// 			}
+// 		}
+// 	}
+// 	// Trivial. It is assured that this method is called only when there is conflict
+// 	return Conflict(0, 0, Cell(0, 0), Cell(0, 0), 0);
+// }
 
 // Returns min cost on tree
 int HighLevelSolver::getMinCost(const std::vector<TreeNode> &tree)
@@ -170,7 +304,10 @@ TreeNode HighLevelSolver::findBestNode(const std::vector<TreeNode> &tree)
 	for (const auto &node : tree)
 	{
 		if (node.getCost() == minCost)
+		{
 			return node;
+		}
+			
 	}
 	return TreeNode();
 }
@@ -207,7 +344,7 @@ std::vector<std::vector<Cell>> HighLevelSolver::solve(const Map &map)
 		std::cout << "size of the tree is " << tree.size() << std::endl;
 
 		P = findBestNode(tree);
-		std::cout << (P.getSolution())[0].size() << " " << P.getSolution()[1].size() << " " << P.getSolution()[2].size() << " " << P.getSolution()[3].size() << std::endl;
+		//std::cout << (P.getSolution())[0].size() << " " << P.getSolution()[1].size() << " " << P.getSolution()[2].size() << " " << P.getSolution()[3].size() << std::endl;
 		int p = 0;
 		// Remove current node from tree because it has conflicts.
 		for (auto i : tree)

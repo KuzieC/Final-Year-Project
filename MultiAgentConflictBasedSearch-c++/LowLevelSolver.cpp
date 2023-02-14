@@ -9,26 +9,26 @@
 LowLevelSolver::LowLevelSolver() = default;
 LowLevelSolver::~LowLevelSolver() = default;
 
-bool LowLevelSolver::checkStartGoalCells(const Cell &start, const Cell &goal, const Map &map)
+bool LowLevelSolver::checkStartGoalCells(const Cell &start, const Cell &goal, const Map &map, const int agentID)
 {
 	if (!isValid(start.x, start.y, map))
 	{
-		std::cout << "Start cell is invalid";
+		std::cout << "Start cell is invalid" << std::endl;
 		return false;
 	}
 	if (!isValid(goal.x, goal.y, map))
 	{
-		std::cout << "Goal cell is invalid";
+		std::cout << "Goal cell is invalid" << std::endl;
 		return false;
 	}
 	if (start.isObstacle)
 	{
-		std::cout << "Obstacle in start cell";
+		std::cout << "Obstacle in start cell" << std::endl;
 		return false;
 	}
 	if (goal.isObstacle)
 	{
-		std::cout << "Obstacle in goal cell";
+		std::cout << "Obstacle in goal cell" << std::endl;
 		return false;
 	}
 	return true;
@@ -41,7 +41,7 @@ inline bool LowLevelSolver::isObstacle(const Map &map, int x, int y)
 	{
 		// std::cout<<x<<" "<<y<<" "<<map.cells.size()<<" "<<map.cells[0].size()<<std::endl;
 
-		return (map.cells[x][y].isObstacle);
+		return (map.cells[y][x].isObstacle);
 	}
 	catch (std::exception &e)
 	{
@@ -107,7 +107,7 @@ void LowLevelSolver::updateCostFunction(Cell &successor, Cell goal, int time)
 	successor.f = successor.g + successor.h;
 }
 
-std::pair<int, Cell> LowLevelSolver::findMinCostCell(const std::unordered_multimap<int, Cell> &OPEN)
+std::pair<int, Cell> LowLevelSolver::findMinCostCell(const std::unordered_multimap<int, Cell> &OPEN) // cost need to add time as a measure
 {
 	Cell min_cell;
 	int min_value = INT_MAX;
@@ -209,7 +209,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 	time = 0;
 	successor.parent = new Cell;
 	current_cell.parent = new Cell;
-	checkStartGoalCells(current_cell, goal, map);
+	checkStartGoalCells(current_cell, goal, map, agentID);
 	OPEN.insert(std::make_pair(time, current_cell));
 
 	while (!(findMinCostCell(OPEN).second == goal))
@@ -235,12 +235,8 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 		}
 
 		successorCells.clear();
-		/*
-		if (goal.x == 1 && goal.y == 1 && current_cell.x == 2 && current_cell.y == 1) {
-			std::cout << "";
-		}
-		*/
-		if (checkConstraint(current_cell, map, agentID, time, constraints, -1, 0))
+
+		if (checkConstraint(current_cell, map, agentID, time, constraints, -1, 0) && checkConstraint(current_cell, map, agentID, time, semiconstraints, -1, 0))
 		{
 			child_cell = current_cell;
 			child_cell.x -= 1;
@@ -248,7 +244,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			successorCells.push_back(child_cell);
 		}
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, +1, 0))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, +1, 0) && checkConstraint(current_cell, map, agentID, time, semiconstraints, +1, 0))
 		{
 			child_cell = current_cell;
 			child_cell.x += 1;
@@ -256,7 +252,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			successorCells.push_back(child_cell);
 		}
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, -1))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, -1) && checkConstraint(current_cell, map, agentID, time, semiconstraints, 0, -1))
 		{
 			child_cell = current_cell;
 			child_cell.y -= 1;
@@ -264,7 +260,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			successorCells.push_back(child_cell);
 		}
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, +1))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, +1)&& checkConstraint(current_cell, map, agentID, time, semiconstraints, 0, +1))
 		{
 			child_cell = current_cell;
 			child_cell.y += 1;
@@ -272,7 +268,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			successorCells.push_back(child_cell);
 		}
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, 0))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, 0)&& checkConstraint(current_cell, map, agentID, time, semiconstraints, 0, 0))
 		{
 			child_cell = current_cell;
 			successorCells.push_back(child_cell);
@@ -311,7 +307,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 				OPEN.insert(std::make_pair(time, successor));
 				path.insert(std::make_pair(time, std::make_pair(successor, current_cell)));
 			}
-			else if (!(contains(OPEN, successor)) && !(contains1(CLOSE, successor)))
+			else
 			{
 
 				// successor.f = findHeuristicDistance(successor, goal);
@@ -334,7 +330,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 		// time++;
 	}
 	Constraint kkk(agentID, goal, time);
-	// semiconstraints.push_back(kkk);
+	semiconstraints.push_back(kkk);
 	// std::cout<<semiconstraints[0].agentID<<" "<<semiconstraints[0].time<<" "<<std::endl;
 	/*
 	for (auto elem : path)
@@ -374,12 +370,12 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 	// 	}
 	// }
 
-	for (auto elem : optimalPath)
-	{
-		std::cout << elem.x << " " << elem.y << "\n";
-	}
-	std::cout << "\n"
-			  << std::endl;
+	// for (auto elem : optimalPath)
+	// {
+	// 	std::cout << elem.x << " " << elem.y << "\n";
+	// }
+	// std::cout << "\n"
+	// 		  << std::endl;
 
 	path.clear();
 	OPEN.clear();

@@ -1,0 +1,20 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskLabel": "task",
+      "appliesTo": "*",
+      "type": "launch",
+      "command": "make",
+      "args": [
+        "clean",
+        "&make"
+      ]
+    },
+    {
+      "taskLabel": "task-main",
+      "appliesTo": "main.exe",
+      "type": "launch"
+    }
+  ]
+}

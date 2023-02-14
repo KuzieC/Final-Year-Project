@@ -23,7 +23,7 @@ private:
 	static inline bool contains(std	::unordered_multimap<int,Cell> cells, Cell cell);
 	static inline bool contains1(std::vector<Cell> cells, Cell cell);
 	static int findIndex(std::vector<Cell> cells, Cell cell);
-	static bool checkStartGoalCells(const Cell &start, const Cell &goal, const Map &map);
+	static bool checkStartGoalCells(const Cell &start, const Cell &goal, const Map &map,const int agentID);
 	static int findHeuristicDistance(Cell current_cell, Cell cell);			//Manhattan distance calculation
 	static bool isValid(int x, int y, const Map &map);						// Checks if given cells are valid
 	static void updateCostFunction(Cell &successor, Cell goal, int time);

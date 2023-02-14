@@ -1,5 +1,5 @@
 
-
+#include <fstream>
 #include <chrono>
 #include "LowLevelSolver.h"
 #include "HighLevelSolver.h"
@@ -22,7 +22,7 @@ Map readMap(std::string filename)
 
 	Map map; // Grid map
 	int row, col;
-
+	std::vector<std::vector<Cell>> cells;
 	std::ifstream infile(filename);
 	std::string line;
 	std::string line2;
@@ -39,8 +39,8 @@ Map readMap(std::string filename)
 	std::istringstream k(line);
 	std::string s;
 
-	std::vector<std::vector<Cell>> cells;
-
+	
+	std::cout<< col << row<< std::endl;
 	for (int i = 0; i < row; i++)
 	{
 
@@ -48,19 +48,21 @@ Map readMap(std::string filename)
 		for (int j = 0; j < col; j++)
 		{
 			Cell n(j, i);
-			n.isObstacle = false;
+			//n.isObstacle = false;
 			row_.emplace_back(n);
 		}
 		cells.emplace_back(row_);
 	};
 
+
+	
 	while (getline(k, s, ' '))
 	{
 		auto splitted = split(s, ',');
 		int x = std::stoi(splitted[0]);
 		int y = std::stoi(splitted[1]);
-		// std:: cout<<x<<y<<std::endl;
-		cells[x][y].isObstacle = true;
+		//std:: cout<<x<<y<< cells[x][y].isObstacle << std::endl;
+		cells[y][x].isObstacle = true;
 	}
 
 	// next lines are agents. start1 start2
@@ -111,7 +113,7 @@ void printMap(Map map)
 	{
 		for (int j = 0; j < map.cells[0].size(); j++)
 		{
-			if (map.cells[j][i].isObstacle == true)
+			if (map.cells[i][j].isObstacle == true)
 				std::cout << "X";
 			else
 				std::cout << "_";
@@ -163,19 +165,47 @@ void printSolution(std::vector<std::vector<Cell>> optimalPaths)
 	}
 }
 
+void writeoutput(std::vector<std::vector<Cell>> optimalPaths, Map &map){
+	std::ofstream outfile;
+	outfile.open("result.txt");
+	outfile << map.cells[0].size() << " "<< map.cells.size()<<std::endl;
+	for(int i = 0 ; i < map.cells.size(); i ++){
+		for (int j = 0 ; j < map.cells[0].size(); j ++){
+			if(map.cells[i][j].isObstacle){
+				outfile << j << "." << i << " ";
+			}
+		}
+	}
+	outfile << std::endl;
+	for(int i = 0 ; i < map.agents.size(); i++){
+		outfile<< map.agents[i].len<< " ";
+	}
+	outfile<<std::endl;
+	for(int i = 0; i < map.agents.size(); i ++){
+		for (auto cell : optimalPaths[i])
+		{
+			outfile << cell.x <<"."<<cell.y<<" ";
+		}
+		outfile << std::endl;
+	}
+	outfile.close();
+
+}
 int main()
 {
 	auto started = std::chrono::high_resolution_clock::now();
 
 	std::vector<std::vector<Cell>> optimalPaths;
-	Map map = readMap("data\\map.txt");
-	printMap(map);
+	Map map = readMap("data\\map3.txt");
+	//printMap(map);
 	HighLevelSolver solver;
 	optimalPaths = solver.solve(map);
-	printSolution(optimalPaths);
+	
 	auto done = std::chrono::high_resolution_clock::now();
 	auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(done - started).count();
 	std::cout << elapsedTime << " milliseconds ";
+	printSolution(optimalPaths);
+	writeoutput(optimalPaths,map);
 
 	return 0;
 }
