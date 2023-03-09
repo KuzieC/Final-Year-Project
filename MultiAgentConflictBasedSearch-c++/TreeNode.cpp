@@ -1,5 +1,5 @@
 #include "TreeNode.h"
-
+#include "HighLevelSolver.h"
 
 TreeNode::TreeNode() = default;
 TreeNode::~TreeNode() = default;
@@ -38,6 +38,23 @@ void TreeNode::updateCost() {
 		cost += route.size();
 	}
 	this->cost = cost;
+}
+
+int TreeNode::getConflcit() const{
+	return conflicts;
+}
+void TreeNode::updateConflicts(const Map &map){
+	int count = 0;
+	for(int i = 0; i < solution.size();i++){
+		for(int j = i+1;j<solution.size();j++){
+			
+			if(HighLevelSolver::hasConflict(solution[i], solution[j], map.agents[i].len, map.agents[j].len)||HighLevelSolver::hasEdgeConflict(solution[i], solution[j], map.agents[i].len, map.agents[j].len)){
+				count++;
+			}
+		}
+	}
+	this->conflicts = count;
+	
 }
 bool operator==(const TreeNode& lhs, const TreeNode& rhs)
 {

@@ -17,6 +17,9 @@ struct Cell {
 	bool operator==(const Cell& other) const {
 		return x == other.x && y == other.y;
 	}
+	bool operator!=(const Cell& other) const {
+		return x != other.x || y != other.y;
+	}
 
 	Cell operator=(const Cell & rhs)
 	{
@@ -70,6 +73,7 @@ struct Constraint {
 struct Map {
 	std::vector<std::vector<Cell>> cells;
 	std::vector<Agent> agents;
+
 };
 
 

@@ -17,7 +17,7 @@ size_obstacle = len(obstacle)-1
 
 size = f.readline()
 words = size.split(" ")
-num = len(words) - 1
+num = len(words) -1
 paths = []
 max_length = 0
 for i in range (num):
@@ -38,6 +38,7 @@ i = 0
 for path in paths:
     l = len(path.split(" "))
     temp = path.split(" ")[l-1]
+    print(temp)
     while   l < max_length:
         paths[i] = paths[i]+ " " +temp 
         l += 1
@@ -73,17 +74,18 @@ ax.set_xticks(np.arange(x+1))
 ax.set_yticks(np.arange(y+1))
 ax.set_axisbelow(True)
 plt.grid(color='black', linestyle='-', linewidth=1)
+plt.axis('scaled')
 color = []
 cc = ""
 figManager = plt.get_current_fig_manager()
-figManager.resize(*figManager.window.maxsize())
+# figManager.resize(*figManager.window.maxsize())
 for i in range (num):
     cc = random_hex_number()
     for j in range(4):
         color.append("#"+cc)
 for i in range(max_length):
     plot_obstacle()
-    ax.scatter(coordx[i],coordy[i],c = color,marker = ".",s = 2000)
+    ax.scatter(coordx[i],coordy[i],c = color,marker = ".",s = 1500)
     #print(coordx[i],coordy[i])
   
     plt.draw()

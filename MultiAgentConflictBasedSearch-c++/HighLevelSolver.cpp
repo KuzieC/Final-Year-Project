@@ -1,4 +1,4 @@
-#include "HighLevelSolver.h"
+ #include "HighLevelSolver.h"
 #include <vector>
 #include <algorithm>
 #include <climits>
@@ -123,9 +123,9 @@ bool HighLevelSolver::hasEdgeConflict(const std::vector<Cell> &route1, const std
 	if(leni == 0){
 		if(lenj == 0){
 			for (int i = 0; i < min_index; i ++){
-					if (route1[i] == route2[i+1] && route1[i+1] == route2[i])
+					if (route1[i] == route2[i+1] && route1[i+1] == route2[i] && route1[i] != route2[i])
 					{
-						edge = Conflict(0, 0, route1[i], route2[i+1], i);
+						edge = Conflict(0, 0, route1[i], route2[i], i);
 						return true;
 					}
 
@@ -152,7 +152,7 @@ bool HighLevelSolver::hasEdgeConflict(const std::vector<Cell> &route1, const std
 				{
 					for (int j = 0; j < 5; j++)
 					{
-						if (temp[k] == temp1[j] && temp[j] == temp1[k])
+						if (temp[k] == temp1[j] && temp[j] == temp1[k] && temp[k] != temp[j])
 						{
 							edge = Conflict(0, 0, temp[k], temp[j], i);
 							return true;
@@ -182,7 +182,7 @@ bool HighLevelSolver::hasEdgeConflict(const std::vector<Cell> &route1, const std
 				{
 					for (int j = 0; j < 5; j++)
 					{
-						if (temp[k] == temp1[j] && temp[j] == temp1[k])
+						if (temp[k] == temp1[j] && temp[j] == temp1[k] && temp[k] != temp[j])
 						{
 							edge = Conflict(0, 0, temp[k], temp[j], i);
 							return true;
@@ -217,7 +217,7 @@ bool HighLevelSolver::hasEdgeConflict(const std::vector<Cell> &route1, const std
 			{
 				for (int j = 0; j < 8; j++)
 				{
-					if (temp[k] == temp1[j] && temp[j] == temp1[k])
+					if (temp[k] == temp1[j] && temp[j] == temp1[k] && temp[k] != temp[j])
 					{
 						edge = Conflict(0, 0, temp[k], temp[j], i);
 						return true;
@@ -247,6 +247,18 @@ bool HighLevelSolver::hasEdgeConflict(const TreeNode &node, const Map &map)
 	return false;
 }
 
+int HighLevelSolver::calculateConflicts(TreeNode &Node, const Map &map){
+	auto solution = Node.getSolution();
+	int count = 0;
+	for(int i = 0; i < solution.size();i++){
+		for(int j = i+1;j<solution.size();j++){
+			if(hasConflict(solution[i], solution[j], map.agents[i].len, map.agents[j].len)||hasEdgeConflict(solution[i], solution[j], map.agents[i].len, map.agents[j].len)){
+				count++;
+			}
+		}
+	}
+	return count;
+}
 // Conflict HighLevelSolver::getFirstConflict(const TreeNode &P)
 // {
 // 	auto solutions = P.getSolution();
@@ -300,53 +312,117 @@ int HighLevelSolver::getMinCost(const std::vector<TreeNode> &tree)
 // Returns first node with minCost
 TreeNode HighLevelSolver::findBestNode(const std::vector<TreeNode> &tree)
 {
-	auto minCost = getMinCost(tree);
-	for (const auto &node : tree)
+	/*int minConflict = 0;*/
+	int minCost = 0;
+	TreeNode t;
+	/* for ( auto &node : tree)
+	 {
+	 	if (node.getConflcit() > minConflict)
+	 	{
+	 		minConflict = node.getConflcit();
+	 		t = node;
+	 	}
+	 }*/
+	for ( auto &node : tree)
 	{
-		if (node.getCost() == minCost)
+		if (node.getConflcit() > minCost)
 		{
-			return node;
+			minCost = node.getConflcit() ;
+			t = node;
 		}
 			
 	}
-	return TreeNode();
+	return t;
 }
 
 inline bool HighLevelSolver::isEmpty(const std::vector<TreeNode> &tree)
 {
 	return tree.empty();
 }
+bool HighLevelSolver::CheckEverything(const Map &map){
+	int Size = map.agents.size();
+	std::vector<Cell> start;
+	std::vector<Cell> goal;
+	for(auto p: map.agents){
+		start.push_back(p.start);
+		goal.push_back(p.end);
+		if(p.len != 0){
+			start.push_back(Cell(p.start.x,p.start.y+p.len));
+			start.push_back(Cell(p.start.x+p.len,p.start.y));
+			start.push_back(Cell(p.start.x+p.len,p.start.y+p.len));
+			goal.push_back(Cell(p.end.x,p.end.y+p.len));
+			goal.push_back(Cell(p.end.x+p.len,p.end.y));
+			goal.push_back(Cell(p.end.x+p.len,p.end.y+p.len));
+		}
+	}
+	for(int i = 0; i < Size - 1; i ++){
+		for(int j = i + 1; j < Size ; j++){
+				if(start[i] == start[j]){
+					return false;
+				}
+				if(goal[i] == goal[j]){
+					return false;
+				}
+		}
+	}
+	return true;
+}
 
 std::vector<std::vector<Cell>> HighLevelSolver::solve(const Map &map)
 {
+	
 	std::vector<TreeNode> tree;
-
+	
 	auto root = TreeNode();
 	root.updateSolution(map);
 	root.updateCost();
+	root.updateConflicts(map);
 	// std::cout<< map.agents.size()<<std::endl;
 	if (root.getSolution().size() == map.agents.size())
 	{
+		if (!hasEdgeConflict(root, map) && !hasConflict(root, map))
+		{
+			return root.getSolution();
+		}
 		tree.emplace_back(root);
+	}
+	else{
+		std::cout<< "no solution"<<std::endl;
+		exit;
 	}
 	// TODO
 
 	while (!isEmpty(tree))
 	{
 		TreeNode P;
-		for (auto i : tree)
-		{
+		if(tree.size()!= 1){
+			auto i = tree[tree.size()-1];
+			auto j = tree[tree.size()-2];
 			if (!hasEdgeConflict(i, map) && !hasConflict(i, map))
 			{
 				return i.getSolution();
 			}
+			if (!hasEdgeConflict(j, map) && !hasConflict(j, map))
+			{
+				return j.getSolution();
+			}
 		}
+		//if(tree.size() > 1000) return std::vector<std::vector<Cell>>();
 		std::cout << "size of the tree is " << tree.size() << std::endl;
-
+	
 		P = findBestNode(tree);
+
+		for(auto o:P.getSolution()){
+			for(auto j : o){
+				std::cout<< j.x<<"."<<j.y<<" ";
+			}
+			std::cout<<std::endl;
+		}
+		std::cout<<std::endl;
 		//std::cout << (P.getSolution())[0].size() << " " << P.getSolution()[1].size() << " " << P.getSolution()[2].size() << " " << P.getSolution()[3].size() << std::endl;
 		int p = 0;
 		// Remove current node from tree because it has conflicts.
+		
 		for (auto i : tree)
 		{
 			if (i == P)
@@ -356,11 +432,10 @@ std::vector<std::vector<Cell>> HighLevelSolver::solve(const Map &map)
 			}
 			p++;
 		}
-
 		if (hasConflict(P, map))
 		{
 			auto conflict = normal;
-
+			std::cout<<"vertex conflict "<<conflict.cell1.x<<"."<<conflict.cell1.y<<" "<<conflict.cell2.x<<"."<<conflict.cell2.y<<" "<<conflict.time<<" "<<conflict.conflictedAgentsID.first<<" "<<conflict.conflictedAgentsID.second<<std::endl;
 			for (int i = 0; i < 2; i++)
 			{
 
@@ -379,6 +454,7 @@ std::vector<std::vector<Cell>> HighLevelSolver::solve(const Map &map)
 				A.addConstraint(newConstraint);
 				A.updateSolution(map);
 				A.updateCost();
+				A.updateConflicts(map);
 
 				// If a solution found, push it to the tree
 				if (A.getSolution().size() == map.agents.size())
@@ -395,7 +471,7 @@ std::vector<std::vector<Cell>> HighLevelSolver::solve(const Map &map)
 		{
 			auto conflict = edge;
 			// Remove current node from tree because it has conflicts.
-
+			std::cout<<"edge conflict "<<conflict.cell1.x<<"."<<conflict.cell1.y<<" "<<conflict.cell2.x<<"."<<conflict.cell2.y<<" "<<conflict.time<<" "<<conflict.conflictedAgentsID.first<<" "<<conflict.conflictedAgentsID.second<<std::endl;
 			for (int i = 0; i < 2; i++)
 			{
 
@@ -422,6 +498,7 @@ std::vector<std::vector<Cell>> HighLevelSolver::solve(const Map &map)
 				// A.addConstraint(constrain4);
 				A.updateSolution(map);
 				A.updateCost();
+				A.updateConflicts(map);
 
 				// If a solution found, push it to the tree
 				if (A.getSolution().size() == map.agents.size())

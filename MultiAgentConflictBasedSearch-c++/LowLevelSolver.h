@@ -16,10 +16,9 @@ private:
 	std::unordered_multimap<int,Cell> OPEN;
 	std::vector<Cell> CLOSE;
 	int time{};
-
 	static inline bool isObstacle(const Map &map, int x, int y);
 	static inline bool isConstraint(int agentID, int x, int y, int time, const std::vector<Constraint> &constraints);
-	static inline bool isSemiConstraint(int x, int y, int time, const std::vector<Constraint> &constraints);
+	static inline bool isSemiConstraint(int agentID,int x, int y, int time, const std::vector<Constraint> &constraints);
 	static inline bool contains(std	::unordered_multimap<int,Cell> cells, Cell cell);
 	static inline bool contains1(std::vector<Cell> cells, Cell cell);
 	static int findIndex(std::vector<Cell> cells, Cell cell);
@@ -35,6 +34,7 @@ public:
 	LowLevelSolver();
 	~LowLevelSolver();
 	bool checkConstraint(Cell current_cell, const Map &map, int agentID, int time,const std::vector<Constraint> constraints, int shiftx,int shifty);
+	bool checkSemiConstraint(Cell current_cell, const Map &map, int agentID, int time,const std::vector<Constraint> constraints, int shiftx,int shifty);
 	std::vector<Cell> solve(const std::vector<Constraint> &constraints, std::vector<Constraint> &semiconstraints, const Map &map, int agentID);
 	std::vector<std::vector<Cell>> findOptimalPaths(const std::vector<Constraint> &constraints, const Map &map);
 

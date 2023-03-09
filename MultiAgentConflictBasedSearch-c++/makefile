@@ -4,13 +4,13 @@
 # Variables to control Makefile operation
  
 CC = g++
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g 
  
 # ****************************************************
 # Targets needed to bring the executable up to date
  
-main: main.o LowLevelSolver.o HighLevelSolver.o TreeNode.o
-	$(CC) -o $(CFLAGS) -o main main.o LowLevelSolver.o HighLevelSolver.o TreeNode.o
+main: main.o LowLevelSolver.o HighLevelSolver.o TreeNode.o map.o
+	$(CC) -o $(CFLAGS) -o main main.o LowLevelSolver.o HighLevelSolver.o TreeNode.o map.o
     
 main.o: main.cpp 
 	$(CC) $(CFLAGS) -c main.cpp 
@@ -23,6 +23,8 @@ HighLevelSolver.o: HighLevelSolver.cpp
 TreeNode.o: TreeNode.cpp 
 	$(CC) $(CFLAGS) -c TreeNode.cpp 
 
+map.o: map.cpp
+	$(CC) $(CFLAGS) -c map.cpp
 clean:
 	rm *.o *.exe 
 

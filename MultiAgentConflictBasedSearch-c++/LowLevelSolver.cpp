@@ -11,12 +11,13 @@ LowLevelSolver::~LowLevelSolver() = default;
 
 bool LowLevelSolver::checkStartGoalCells(const Cell &start, const Cell &goal, const Map &map, const int agentID)
 {
-	if (!isValid(start.x, start.y, map))
+	int len = map.agents[agentID].len;
+	if (!isValid(start.x, start.y, map) || !isValid(start.x + len, start.y, map) || !isValid(start.x + len, start.y+len, map)|| !isValid(start.x , start.y+len, map))
 	{
 		std::cout << "Start cell is invalid" << std::endl;
 		return false;
 	}
-	if (!isValid(goal.x, goal.y, map))
+	if (!isValid(goal.x, goal.y, map) || !isValid(goal.x+len, goal.y, map)|| !isValid(goal.x+len, goal.y+len, map)|| !isValid(goal.x, goal.y+len, map))
 	{
 		std::cout << "Goal cell is invalid" << std::endl;
 		return false;
@@ -72,12 +73,12 @@ bool LowLevelSolver::isConstraint(int agentID, int x, int y, int time, const std
 	}
 	return false;
 }
-bool LowLevelSolver::isSemiConstraint(int x, int y, int time, const std::vector<Constraint> &constraints)
+bool LowLevelSolver::isSemiConstraint(int agentID,int x, int y, int time, const std::vector<Constraint> &constraints)
 {
 	for (Constraint c : constraints)
 	{
 
-		if (time >= c.time && c.cell.x == x && c.cell.y == y)
+		if (time >= c.time && c.cell.x == x && c.cell.y == y && c.agentID != agentID)
 		{
 			return true;
 		}
@@ -158,22 +159,37 @@ inline bool LowLevelSolver::contains1(std::vector<Cell> cells, Cell cell)
 inline int LowLevelSolver::findIndex(std::vector<Cell> cells, Cell cell)
 {
 	auto it = std::find(cells.begin(), cells.end(), cell);
-	return it != cells.end();
+	if (it != cells.end())
+	{
+		int index = std::distance(cells.begin(), it);
+		return index;
+	}
 }
 
 // for each agent find optimal path
 std::vector<std::vector<Cell>> LowLevelSolver::findOptimalPaths(const std::vector<Constraint> &constraints, const Map &map)
 {
 	std::vector<Constraint> semiconstraint;
+	std:: vector<Cell> temp;
+	temp.push_back(Cell(9999,9999));
 	for (auto k = 0; k < map.agents.size(); k++)
 	{
 		auto s = solve(constraints, semiconstraint, map, k);
+		int y = s.size();
+		if(s == temp){
+			k = -1;
+			optimalPaths.clear();
+			continue;
+		}
 		if (s.size())
 			optimalPaths.emplace_back(s);
 		// std::cout<<semiconstraint.size()<<std::endl;
 	}
+	int x = optimalPaths.size();
 	return optimalPaths;
 }
+
+
 bool LowLevelSolver::checkConstraint(Cell current_cell, const Map &map, int agentID, int time, const std::vector<Constraint> constraints, int shiftx, int shifty)
 {
 	int Len = map.agents[agentID].len;
@@ -193,8 +209,28 @@ bool LowLevelSolver::checkConstraint(Cell current_cell, const Map &map, int agen
 	return false;
 }
 
+bool LowLevelSolver::checkSemiConstraint(Cell current_cell, const Map &map, int agentID, int time, const std::vector<Constraint> constraints, int shiftx, int shifty)
+{
+	int Len = map.agents[agentID].len;
+	if (isValid(current_cell.x + shiftx, current_cell.y + shifty, map) && !isSemiConstraint(agentID, current_cell.x + shiftx, current_cell.y + shifty, time, constraints))
+	{
+		if (isValid(current_cell.x + shiftx + Len, current_cell.y + shifty, map) && !isSemiConstraint(agentID,current_cell.x + shiftx + Len, current_cell.y + shifty, time, constraints))
+		{
+			if (isValid(current_cell.x + shiftx, current_cell.y + Len + shifty, map) && !isSemiConstraint(agentID, current_cell.x + shiftx, current_cell.y + Len + shifty, time, constraints))
+			{
+				if (isValid(current_cell.x + shiftx + Len, current_cell.y + Len + shifty, map) && !isSemiConstraint(agentID, current_cell.x + shiftx + Len, current_cell.y + Len + shifty, time, constraints))
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constraints, std::vector<Constraint> &semiconstraints, const Map &map, int agentID)
 {
+	OPEN.clear();
 	Cell current_cell, child_cell, start, goal, successor;
 	optimalPath.clear();
 	successorCells.clear();
@@ -236,7 +272,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 
 		successorCells.clear();
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, -1, 0) && checkConstraint(current_cell, map, agentID, time, semiconstraints, -1, 0))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, -1, 0) && checkSemiConstraint(current_cell, map, agentID, time, semiconstraints, -1, 0))
 		{
 			child_cell = current_cell;
 			child_cell.x -= 1;
@@ -244,7 +280,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			successorCells.push_back(child_cell);
 		}
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, +1, 0) && checkConstraint(current_cell, map, agentID, time, semiconstraints, +1, 0))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, +1, 0) && checkSemiConstraint(current_cell, map, agentID, time, semiconstraints, +1, 0))
 		{
 			child_cell = current_cell;
 			child_cell.x += 1;
@@ -252,7 +288,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			successorCells.push_back(child_cell);
 		}
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, -1) && checkConstraint(current_cell, map, agentID, time, semiconstraints, 0, -1))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, -1) && checkSemiConstraint(current_cell, map, agentID, time, semiconstraints, 0, -1))
 		{
 			child_cell = current_cell;
 			child_cell.y -= 1;
@@ -260,7 +296,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			successorCells.push_back(child_cell);
 		}
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, +1)&& checkConstraint(current_cell, map, agentID, time, semiconstraints, 0, +1))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, +1)&& checkSemiConstraint(current_cell, map, agentID, time, semiconstraints, 0, +1))
 		{
 			child_cell = current_cell;
 			child_cell.y += 1;
@@ -268,7 +304,7 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			successorCells.push_back(child_cell);
 		}
 
-		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, 0)&& checkConstraint(current_cell, map, agentID, time, semiconstraints, 0, 0))
+		if (checkConstraint(current_cell, map, agentID, time, constraints, 0, 0)&& checkSemiConstraint(current_cell, map, agentID, time, semiconstraints, 0, 0))
 		{
 			child_cell = current_cell;
 			successorCells.push_back(child_cell);
@@ -329,8 +365,35 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 		}
 		// time++;
 	}
+	int lens = map.agents[agentID].len;
 	Constraint kkk(agentID, goal, time);
-	semiconstraints.push_back(kkk);
+	Constraint kkk1(agentID, Cell(goal.x+lens,goal.y), time);
+	Constraint kkk2(agentID,  Cell(goal.x,goal.y+lens), time);
+	Constraint kkk3(agentID,  Cell(goal.x+lens,goal.y+lens), time);
+	if(semiconstraints.size() == 0){
+		semiconstraints.push_back(kkk);
+		semiconstraints.push_back(kkk1);
+		semiconstraints.push_back(kkk2);
+		semiconstraints.push_back(kkk3);
+		std::vector<Cell> temp;
+		temp.push_back(Cell(9999,9999));
+		return  temp;
+	}
+	else if (semiconstraints.back().agentID >= agentID){
+
+
+	}
+	else{	
+		semiconstraints.push_back(kkk);
+		semiconstraints.push_back(kkk1);
+		semiconstraints.push_back(kkk2);
+		semiconstraints.push_back(kkk3);
+		std::vector<Cell> temp;
+		temp.push_back(Cell(9999,9999));
+		return  temp;
+	}
+	
+	
 	// std::cout<<semiconstraints[0].agentID<<" "<<semiconstraints[0].time<<" "<<std::endl;
 	/*
 	for (auto elem : path)
