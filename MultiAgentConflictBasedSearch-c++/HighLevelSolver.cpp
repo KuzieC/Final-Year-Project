@@ -313,7 +313,7 @@ int HighLevelSolver::getMinCost(const std::vector<TreeNode> &tree)
 TreeNode HighLevelSolver::findBestNode(const std::vector<TreeNode> &tree)
 {
 	/*int minConflict = 0;*/
-	int minCost = 0;
+	int minCost = 9999;
 	TreeNode t;
 	/* for ( auto &node : tree)
 	 {
@@ -325,7 +325,7 @@ TreeNode HighLevelSolver::findBestNode(const std::vector<TreeNode> &tree)
 	 }*/
 	for ( auto &node : tree)
 	{
-		if (node.getConflcit() > minCost)
+		if (node.getConflcit() < minCost)
 		{
 			minCost = node.getConflcit() ;
 			t = node;
@@ -407,11 +407,14 @@ std::vector<std::vector<Cell>> HighLevelSolver::solve(const Map &map)
 				return j.getSolution();
 			}
 		}
-		//if(tree.size() > 1000) return std::vector<std::vector<Cell>>();
+		if(tree.size() > 1000) return std::vector<std::vector<Cell>>();
 		std::cout << "size of the tree is " << tree.size() << std::endl;
 	
 		P = findBestNode(tree);
-
+		if (!hasEdgeConflict(P, map) && !hasConflict(P, map))
+		{
+			return P.getSolution();
+		}
 		for(auto o:P.getSolution()){
 			for(auto j : o){
 				std::cout<< j.x<<"."<<j.y<<" ";

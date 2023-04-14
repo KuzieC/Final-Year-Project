@@ -4,7 +4,6 @@ class map{
     private:   
        
        
-    
     public:
         Map m;
         map();

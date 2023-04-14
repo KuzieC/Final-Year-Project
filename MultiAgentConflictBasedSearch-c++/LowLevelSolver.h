@@ -27,7 +27,6 @@ private:
 	static bool isValid(int x, int y, const Map &map);						// Checks if given cells are valid
 	static void updateCostFunction(Cell &successor, Cell goal, int time);
 	static std::pair<int,Cell> findMinCostCell(const std::unordered_multimap<int,Cell> &OPEN);
-	static Cell* findParent(const std::vector<Cell> &OPEN);
 
 
 public:

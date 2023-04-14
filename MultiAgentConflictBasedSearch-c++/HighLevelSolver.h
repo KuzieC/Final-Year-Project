@@ -7,7 +7,6 @@ class HighLevelSolver
 private:
 	static inline bool isEmpty(const std::vector<TreeNode> &tree);
 	static int getMinCost(const std::vector<TreeNode> &tree);
-	static Conflict getFirstConflict(const TreeNode &P);
 	static TreeNode findBestNode(const std::vector<TreeNode> &tree);
 	static bool CheckEverything(const Map &map);
 	static int calculateConflicts(TreeNode &Node, const Map &map);

@@ -48,7 +48,7 @@ void randomlise(int xx, int yy, int sizes, int level)
 	{
 		std::ofstream outfile;
 		outfile.open("data\\random.txt");
-		outfile << xx + 1 << " " << yy + 1 << std::endl;
+		outfile << xx  << " " << yy << std::endl;
 		outfile << std::endl;
 		std::uniform_int_distribution<> distrx(0, xx); // define the range
 		std::uniform_int_distribution<> distry(0, yy); // define the range
@@ -277,22 +277,22 @@ void randomlise(int xx, int yy, int sizes, int level)
 int main()
 {
 	int totaltime = 0;
-	int epoch =1;
+	int epoch = 1;
 	int success = 0;
 	int x = 50;
 	int y = 30;
-	int numberOfRobots = 6;
+	int numberOfRobots = 8  ;
 	int maxmiumT = 0;
 	int minT = INT_MAX;
 	std::vector<int> timeacc;
 	for (int i = 0; i < epoch; i++)
 	{
-		//randomlise(x, y, numberOfRobots, 3);
+		//randomlise(x, y, numberOfRobots, 2);
 		auto started = std::chrono::high_resolution_clock::now();
 
 		std::vector<std::vector<Cell>> optimalPaths;
 		map m1;
-		m1.readMap("data\\map4.txt");
+		m1.readMap("data\\map4.txt"); 
 		// printMap(map);
 		HighLevelSolver solver;
 		optimalPaths = solver.solve(m1.m);
@@ -312,15 +312,15 @@ int main()
 			if (elapsedTime > maxmiumT)
 				maxmiumT = elapsedTime;
 
-			std::cout << "running " << i << " is success, time is " << elapsedTime << " ms" << std::endl;
+			//std::cout << "running " << i << " is success, time is " << elapsedTime << " ms" << std::endl;
 		}
 	}
 	
-	std::cout << success << "/" << epoch << " is success, average runtime for each epoch is " << totaltime / success << " ms, max time is " << maxmiumT << " ms, min time is " << minT << " ms" << std::endl;
+	//std::cout << success << "/" << epoch << " is success, average runtime for each epoch is " << totaltime / success << " ms, max time is " << maxmiumT << " ms, min time is " << minT << " ms" << std::endl;
 	std::ofstream outfile;
 	outfile.open("statistic.txt");
 	for( auto i : timeacc){
-		outfile<< i << ",";
+		outfile<< i << ","; 
 	}
 	outfile.close();
 	return 0;

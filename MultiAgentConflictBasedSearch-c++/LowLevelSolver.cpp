@@ -125,21 +125,6 @@ std::pair<int, Cell> LowLevelSolver::findMinCostCell(const std::unordered_multim
 	return std::make_pair(times, min_cell);
 }
 
-Cell *LowLevelSolver::findParent(const std::vector<Cell> &OPEN)
-{
-	Cell *parent = new Cell;
-	parent = nullptr;
-	int min_value = INT_MAX;
-
-	for (Cell c : OPEN)
-	{
-		if (c.f < min_value)
-		{
-			parent = c.parent;
-		}
-	}
-	return parent;
-}
 
 inline bool LowLevelSolver::contains(std::unordered_multimap<int, Cell> cells, Cell cell)
 {
@@ -345,7 +330,6 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			}
 			else
 			{
-
 				// successor.f = findHeuristicDistance(successor, goal);
 				path.insert(std::make_pair(time, std::make_pair(successor, current_cell)));
 				successor.parent = &current_cell;
@@ -354,7 +338,6 @@ std::vector<Cell> LowLevelSolver::solve(const std::vector<Constraint> &constrain
 			}
 			successorCells.pop_back();
 		}
-
 		CLOSE.push_back(current_cell);
 
 		if (successor == goal)

@@ -13,7 +13,7 @@ def plot_obstacle():
             obstacle[i].split(",")[1]), c="black", marker=".", s=2000)
 
 
-f = open("data//map3.txt", "r")
+f = open("data//map4.txt", "r")
 diam = f.readline()
 x = int(diam.split(" ")[0])
 y = int(diam.split(" ")[1])
@@ -23,7 +23,7 @@ size_obstacle = len(obstacle)
 
 start = f.readline()
 goal = f.readline()
-size = f.readline()
+size = f.readline() 
 
 starts = start.split(" ")
 goals = goal.split(" ")
@@ -77,7 +77,7 @@ for i in range(num):
         color.append("#"+cc)
 
 plot_obstacle()
-ax.scatter( sssx,sssy,c=color, marker=".", s=1500)
+#ax.scatter( sssx,sssy,c=color, marker=".", s=1500)
         # print(coordx[i],coordy[i])  cxcx
-ax.scatter( gggx,gggy,c=color, marker=".", s=1500)
+#ax.scatter( gggx,gggy,c=color, marker=".", s=1500)
 plt.show()
