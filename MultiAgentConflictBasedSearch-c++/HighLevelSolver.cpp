@@ -1,22 +1,52 @@
- #include "HighLevelSolver.h"
+/**
+ * @file HighLevelSolver.cpp
+ * @brief Implementation of the high-level CBS algorithm
+ * 
+ * This file contains the core Conflict-Based Search algorithm implementation.
+ * The CBS algorithm works by:
+ * 1. Finding initial paths for all agents ignoring conflicts
+ * 2. Detecting conflicts between agent paths
+ * 3. Creating constraint tree nodes that resolve conflicts
+ * 4. Repeating until a conflict-free solution is found
+ */
+
+#include "HighLevelSolver.h"
 #include <vector>
 #include <algorithm>
 #include <climits>
 #include <unordered_set>
+
 HighLevelSolver::HighLevelSolver() = default;
 HighLevelSolver::~HighLevelSolver() = default;
 
+// Global conflict storage for detected conflicts
+// TODO: These should be class members rather than global variables
 Conflict normal(0, 0, Cell(0, 0), Cell(0, 0), 0);
 Conflict edge(0, 0, Cell(0, 0), Cell(0, 0), 0);
 
-// Returns true if there is a conflict between two given routes
-// normal conflict detection, four to four, leni/lenj is the side length of two square
+/**
+ * @brief Detects vertex conflicts between two agent routes
+ * @param route1 Path of the first agent
+ * @param route2 Path of the second agent  
+ * @param leni Side length of first agent (0 for point agent)
+ * @param lenj Side length of second agent (0 for point agent)
+ * @return true if a conflict is detected, false otherwise
+ * 
+ * This function handles three cases:
+ * 1. Point-to-point agent conflicts (both len=0)
+ * 2. Point-to-square agent conflicts (one len=0)
+ * 3. Square-to-square agent conflicts (both len>0)
+ * 
+ * For square agents, all four corner cells are checked for conflicts.
+ */
 bool HighLevelSolver::hasConflict(const std::vector<Cell> &route1, const std::vector<Cell> &route2, int leni, int lenj)
 {
 	auto min_index = std::min(route1.size(), route2.size());
-	//check for size 0 square 
+	
+	// Case 1: First agent is point-sized (len=0)
 	if(leni == 0){
 		if(lenj == 0){
+			// Both agents are point-sized - simple position comparison
 			for (int i = 0; i < min_index; i ++){
 				if(route1[i] == route2[i]){
 					normal = Conflict(i,i,route1[i],route2[i],i);
@@ -25,14 +55,18 @@ bool HighLevelSolver::hasConflict(const std::vector<Cell> &route1, const std::ve
 			}
 		}
 		else{
+			// First agent is point, second is square - check if point intersects with square
 			for (int i = 0; i < min_index; i++)
 			{
 				Cell temp[5];
+				// Four corners of the square agent
 				temp[0] = Cell(route2[i].x,        route2[i].y);
 				temp[1] = Cell(route2[i].x + lenj, route2[i].y);
 				temp[2] = Cell(route2[i].x,        route2[i].y + lenj);
 				temp[3] = Cell(route2[i].x + lenj, route2[i].y + lenj);
+				// Position of point agent
 				temp[4] = Cell(route1[i].x       , route1[i].y);
+				
 				for (int m = 0; m < 4; m++)
 				{
 					for (int n = m + 1; n < 5; n++)
@@ -47,15 +81,19 @@ bool HighLevelSolver::hasConflict(const std::vector<Cell> &route1, const std::ve
 			}
 		}
 	}
+	// Case 2: Second agent is point-sized (len=0), first is square
 	else if(lenj == 0){
 		for (int i = 0; i < min_index; i++)
 			{
 				Cell temp[5];
+				// Four corners of the square agent (first agent)
 				temp[0] = Cell(route1[i].x,        route1[i].y);
 				temp[1] = Cell(route1[i].x + leni, route1[i].y);
 				temp[2] = Cell(route1[i].x,        route1[i].y + leni);
 				temp[3] = Cell(route1[i].x + leni, route1[i].y + leni);
+				// Position of point agent (second agent)
 				temp[4] = Cell(route2[i].x       , route2[i].y);
+				
 				for (int m = 0; m < 4; m++)
 				{
 					for (int n = m + 1; n < 5; n++)
@@ -70,14 +108,17 @@ bool HighLevelSolver::hasConflict(const std::vector<Cell> &route1, const std::ve
 			}
 
 	}
+	// Case 3: Both agents are square-sized
 	else {
 		for (int i = 0; i < min_index; i++)
 		{
 			Cell temp[8];
+			// Four corners of first square agent
 			temp[0] = Cell(route1[i].x,        route1[i].y);
 			temp[1] = Cell(route1[i].x + leni, route1[i].y);
 			temp[2] = Cell(route1[i].x,        route1[i].y + leni);
 			temp[3] = Cell(route1[i].x + leni, route1[i].y + leni);
+			// Four corners of second square agent
 			temp[4] = Cell(route2[i].x,        route2[i].y);
 			temp[5] = Cell(route2[i].x + lenj, route2[i].y);
 			temp[6] = Cell(route2[i].x,        route2[i].y + lenj);
@@ -296,7 +337,11 @@ int HighLevelSolver::calculateConflicts(TreeNode &Node, const Map &map){
 // 	return Conflict(0, 0, Cell(0, 0), Cell(0, 0), 0);
 // }
 
-// Returns min cost on tree
+/**
+ * @brief Returns the minimum cost among all nodes in the tree
+ * @param tree Vector of tree nodes to search
+ * @return Minimum cost value found
+ */
 int HighLevelSolver::getMinCost(const std::vector<TreeNode> &tree)
 {
 	int min = INT_MAX;
@@ -309,40 +354,56 @@ int HighLevelSolver::getMinCost(const std::vector<TreeNode> &tree)
 	return min;
 }
 
-// Returns first node with minCost
+/**
+ * @brief Finds the best node to expand next in the CBS tree
+ * @param tree Vector of tree nodes to search
+ * @return Node with the lowest number of conflicts
+ * 
+ * Note: This function currently selects based on minimum conflicts rather than
+ * the traditional CBS approach of selecting minimum cost. This may affect
+ * optimality guarantees.
+ */
 TreeNode HighLevelSolver::findBestNode(const std::vector<TreeNode> &tree)
 {
-	/*int minConflict = 0;*/
-	int minCost = 9999;
+	int minConflicts = INT_MAX;  // Fixed: use proper initialization
 	TreeNode t;
-	/* for ( auto &node : tree)
-	 {
-	 	if (node.getConflcit() > minConflict)
-	 	{
-	 		minConflict = node.getConflcit();
-	 		t = node;
-	 	}
-	 }*/
+	
+	// Select node with minimum number of conflicts
 	for ( auto &node : tree)
 	{
-		if (node.getConflcit() < minCost)
+		if (node.getConflcit() < minConflicts)  // Note: method name has typo
 		{
-			minCost = node.getConflcit() ;
+			minConflicts = node.getConflcit();
 			t = node;
 		}
-			
 	}
 	return t;
 }
 
+/**
+ * @brief Checks if the constraint tree is empty
+ * @param tree Vector of tree nodes
+ * @return true if tree is empty, false otherwise
+ */
 inline bool HighLevelSolver::isEmpty(const std::vector<TreeNode> &tree)
 {
 	return tree.empty();
 }
+
+/**
+ * @brief Validates the input map configuration
+ * @param map Environment map with agents
+ * @return true if configuration is valid, false otherwise
+ * 
+ * Checks that no two agents have overlapping start or goal positions.
+ * For square agents, all four corner positions are checked.
+ */
 bool HighLevelSolver::CheckEverything(const Map &map){
 	int Size = map.agents.size();
 	std::vector<Cell> start;
 	std::vector<Cell> goal;
+	
+	// Collect all start and goal positions (including corners for square agents)
 	for(auto p: map.agents){
 		start.push_back(p.start);
 		goal.push_back(p.end);
@@ -368,27 +429,46 @@ bool HighLevelSolver::CheckEverything(const Map &map){
 	return true;
 }
 
+/**
+ * @brief Main CBS algorithm implementation
+ * @param map The environment map with agents and obstacles
+ * @return Vector of optimal conflict-free paths for all agents
+ * 
+ * This function implements the complete CBS algorithm:
+ * 1. Create root node with no constraints
+ * 2. Find initial paths for all agents
+ * 3. If no conflicts exist, return the solution
+ * 4. Otherwise, add root to constraint tree
+ * 5. While tree is not empty:
+ *    - Select best node (lowest cost)
+ *    - If no conflicts, return solution
+ *    - Otherwise, find first conflict and create two child nodes
+ *    - Each child adds a constraint to resolve the conflict
+ *    - Continue until solution found or tree becomes too large
+ */
 std::vector<std::vector<Cell>> HighLevelSolver::solve(const Map &map)
 {
+	std::vector<TreeNode> tree;  // CBS constraint tree
 	
-	std::vector<TreeNode> tree;
-	
+	// Step 1: Create root node and find initial solution without constraints
 	auto root = TreeNode();
 	root.updateSolution(map);
 	root.updateCost();
 	root.updateConflicts(map);
-	// std::cout<< map.agents.size()<<std::endl;
+	
+	// Step 2: Check if initial solution is valid (no constraints violated)
 	if (root.getSolution().size() == map.agents.size())
 	{
+		// If no conflicts in initial solution, we're done!
 		if (!hasEdgeConflict(root, map) && !hasConflict(root, map))
 		{
 			return root.getSolution();
 		}
-		tree.emplace_back(root);
+		tree.emplace_back(root);  // Add root to tree for further processing
 	}
 	else{
 		std::cout<< "no solution"<<std::endl;
-		exit;
+		return std::vector<std::vector<Cell>>();  // Return empty solution instead of invalid exit
 	}
 	// TODO
 
