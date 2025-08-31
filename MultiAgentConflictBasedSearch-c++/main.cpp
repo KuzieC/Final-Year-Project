@@ -88,7 +88,7 @@ void randomlise(int xx, int yy, int sizes, int level)
 	if (level == 1) // easy
 	{
 		std::ofstream outfile;
-		outfile.open("data\\random.txt");
+		outfile.open("data/random.txt");
 		outfile << xx  << " " << yy << std::endl;
 		outfile << std::endl;
 		std::uniform_int_distribution<> distrx(0, xx); // define the range
@@ -137,7 +137,7 @@ void randomlise(int xx, int yy, int sizes, int level)
 	else if (level == 2) // mid
 	{
 		std::ofstream outfile;
-		outfile.open("data\\random.txt");
+		outfile.open("data/random.txt");
 		outfile << xx + 1 << " " << yy + 1 << std::endl;
 		outfile << std::endl;
 		std::uniform_int_distribution<> distrx(0, xx);
@@ -222,7 +222,7 @@ void randomlise(int xx, int yy, int sizes, int level)
 	else if (level == 3) // hard
 	{
 		std::ofstream outfile;
-		outfile.open("data\\random.txt");
+		outfile.open("data/random.txt");
 		outfile << xx + 1 << " " << yy + 1 << std::endl;
 		outfile << std::endl;
 		std::uniform_int_distribution<> distrx(0, xx);
@@ -343,7 +343,7 @@ int main()
 
 		std::vector<std::vector<Cell>> optimalPaths;
 		map m1;
-		m1.readMap("data\\map4.txt"); 
+		m1.readMap("data/map4.txt");  // Fixed path separator for Linux compatibility 
 		// printMap(map);
 		HighLevelSolver solver;
 		optimalPaths = solver.solve(m1.m);
