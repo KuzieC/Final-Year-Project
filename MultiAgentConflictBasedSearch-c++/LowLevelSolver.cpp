@@ -1,3 +1,12 @@
+/**
+ * @file LowLevelSolver.cpp
+ * @brief Implementation of constraint-aware A* pathfinding
+ * 
+ * This file implements the low-level solver component of the CBS algorithm.
+ * It performs A* search for individual agents while respecting temporal
+ * constraints imposed by the high-level solver.
+ */
+
 #include <algorithm>
 #include "LowLevelSolver.h"
 #include <iostream>
@@ -9,15 +18,32 @@
 LowLevelSolver::LowLevelSolver() = default;
 LowLevelSolver::~LowLevelSolver() = default;
 
+/**
+ * @brief Validates that start and goal positions are accessible for a given agent
+ * @param start Starting position of the agent
+ * @param goal Goal position of the agent
+ * @param map Environment map
+ * @param agentID ID of the agent being checked
+ * @return true if both start and goal are valid, false otherwise
+ * 
+ * For square agents (len > 0), all four corner positions must be valid.
+ * For point agents (len = 0), only the single position needs to be valid.
+ */
 bool LowLevelSolver::checkStartGoalCells(const Cell &start, const Cell &goal, const Map &map, const int agentID)
 {
 	int len = map.agents[agentID].len;
-	if (!isValid(start.x, start.y, map) || !isValid(start.x + len, start.y, map) || !isValid(start.x + len, start.y+len, map)|| !isValid(start.x , start.y+len, map))
+	
+	// Check if start position is valid (all corners for square agents)
+	if (!isValid(start.x, start.y, map) || !isValid(start.x + len, start.y, map) || 
+	    !isValid(start.x + len, start.y+len, map)|| !isValid(start.x , start.y+len, map))
 	{
 		std::cout << "Start cell is invalid" << std::endl;
 		return false;
 	}
-	if (!isValid(goal.x, goal.y, map) || !isValid(goal.x+len, goal.y, map)|| !isValid(goal.x+len, goal.y+len, map)|| !isValid(goal.x, goal.y+len, map))
+	
+	// Check if goal position is valid (all corners for square agents)
+	if (!isValid(goal.x, goal.y, map) || !isValid(goal.x+len, goal.y, map)|| 
+	    !isValid(goal.x+len, goal.y+len, map)|| !isValid(goal.x, goal.y+len, map))
 	{
 		std::cout << "Goal cell is invalid" << std::endl;
 		return false;
@@ -151,26 +177,40 @@ inline int LowLevelSolver::findIndex(std::vector<Cell> cells, Cell cell)
 	}
 }
 
-// for each agent find optimal path
+/**
+ * @brief Finds optimal paths for all agents subject to given constraints
+ * @param constraints Set of temporal constraints to respect
+ * @param map Environment map with agents and obstacles
+ * @return Vector of optimal paths, one for each agent
+ * 
+ * This is the main entry point for the low-level solver. It iterates through
+ * all agents and finds an optimal path for each one using A* search while
+ * respecting the temporal constraints from the high-level CBS algorithm.
+ */
 std::vector<std::vector<Cell>> LowLevelSolver::findOptimalPaths(const std::vector<Constraint> &constraints, const Map &map)
 {
 	std::vector<Constraint> semiconstraint;
-	std:: vector<Cell> temp;
-	temp.push_back(Cell(9999,9999));
+	std::vector<Cell> temp;
+	temp.push_back(Cell(9999,9999));  // Sentinel value to detect failed pathfinding
+	
 	for (auto k = 0; k < map.agents.size(); k++)
 	{
 		auto s = solve(constraints, semiconstraint, map, k);
-		int y = s.size();
+		int y = s.size();  // Note: unused variable 'y' - causes warning
+		
+		// If pathfinding failed (returned sentinel), restart from beginning
 		if(s == temp){
-			k = -1;
+			k = -1;  // Reset counter to restart loop
 			optimalPaths.clear();
 			continue;
 		}
+		
+		// Add valid path to results
 		if (s.size())
 			optimalPaths.emplace_back(s);
-		// std::cout<<semiconstraint.size()<<std::endl;
 	}
-	int x = optimalPaths.size();
+	
+	int x = optimalPaths.size();  // Note: unused variable 'x' - causes warning
 	return optimalPaths;
 }
 

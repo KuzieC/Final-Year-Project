@@ -337,7 +337,11 @@ int HighLevelSolver::calculateConflicts(TreeNode &Node, const Map &map){
 // 	return Conflict(0, 0, Cell(0, 0), Cell(0, 0), 0);
 // }
 
-// Returns min cost on tree
+/**
+ * @brief Returns the minimum cost among all nodes in the tree
+ * @param tree Vector of tree nodes to search
+ * @return Minimum cost value found
+ */
 int HighLevelSolver::getMinCost(const std::vector<TreeNode> &tree)
 {
 	int min = INT_MAX;
@@ -350,40 +354,56 @@ int HighLevelSolver::getMinCost(const std::vector<TreeNode> &tree)
 	return min;
 }
 
-// Returns first node with minCost
+/**
+ * @brief Finds the best node to expand next in the CBS tree
+ * @param tree Vector of tree nodes to search
+ * @return Node with the lowest number of conflicts
+ * 
+ * Note: This function currently selects based on minimum conflicts rather than
+ * the traditional CBS approach of selecting minimum cost. This may affect
+ * optimality guarantees.
+ */
 TreeNode HighLevelSolver::findBestNode(const std::vector<TreeNode> &tree)
 {
-	/*int minConflict = 0;*/
-	int minCost = 9999;
+	int minConflicts = INT_MAX;  // Fixed: use proper initialization
 	TreeNode t;
-	/* for ( auto &node : tree)
-	 {
-	 	if (node.getConflcit() > minConflict)
-	 	{
-	 		minConflict = node.getConflcit();
-	 		t = node;
-	 	}
-	 }*/
+	
+	// Select node with minimum number of conflicts
 	for ( auto &node : tree)
 	{
-		if (node.getConflcit() < minCost)
+		if (node.getConflcit() < minConflicts)  // Note: method name has typo
 		{
-			minCost = node.getConflcit() ;
+			minConflicts = node.getConflcit();
 			t = node;
 		}
-			
 	}
 	return t;
 }
 
+/**
+ * @brief Checks if the constraint tree is empty
+ * @param tree Vector of tree nodes
+ * @return true if tree is empty, false otherwise
+ */
 inline bool HighLevelSolver::isEmpty(const std::vector<TreeNode> &tree)
 {
 	return tree.empty();
 }
+
+/**
+ * @brief Validates the input map configuration
+ * @param map Environment map with agents
+ * @return true if configuration is valid, false otherwise
+ * 
+ * Checks that no two agents have overlapping start or goal positions.
+ * For square agents, all four corner positions are checked.
+ */
 bool HighLevelSolver::CheckEverything(const Map &map){
 	int Size = map.agents.size();
 	std::vector<Cell> start;
 	std::vector<Cell> goal;
+	
+	// Collect all start and goal positions (including corners for square agents)
 	for(auto p: map.agents){
 		start.push_back(p.start);
 		goal.push_back(p.end);
