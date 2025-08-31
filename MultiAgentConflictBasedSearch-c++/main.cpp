@@ -1,20 +1,45 @@
 
+/**
+ * @file main.cpp
+ * @brief Main entry point for the Multi-Agent Conflict-Based Search (CBS) implementation
+ * 
+ * This file contains:
+ * - Random test case generation functions
+ * - Result output functions  
+ * - Main function that loads map, runs CBS algorithm, and outputs results
+ */
+
 #include <fstream>
 #include <chrono>
+#include <climits>  // Added for INT_MAX
 #include "LowLevelSolver.h"
 #include "HighLevelSolver.h"
 #include "map.h"
 #include <random>
 #include <algorithm>
 
+/**
+ * @brief Writes the solution paths to an output file
+ * @param optimalPaths Vector of paths for each agent
+ * @param map Reference to the map containing environment and agent data
+ * 
+ * Output format:
+ * - First line: map dimensions (width height)
+ * - Grid representation with obstacles marked
+ * - Agent start/goal positions
+ * - Individual agent paths
+ */
+
 void writeoutput(std::vector<std::vector<Cell>> optimalPaths, Map &map)
 {
 	std::ofstream outfile;
 	outfile.open("result.txt");
 	outfile << map.cells[0].size()-1 << " " << map.cells.size()-1 << std::endl;
-	for (int i = 0; i < map.cells.size(); i++)
+	
+	// Fix signed/unsigned comparison warnings by using size_t
+	for (size_t i = 0; i < map.cells.size(); i++)
 	{
-		for (int j = 0; j < map.cells[0].size(); j++)
+		for (size_t j = 0; j < map.cells[0].size(); j++)
 		{
 			if (map.cells[i][j].isObstacle)
 			{
@@ -23,12 +48,16 @@ void writeoutput(std::vector<std::vector<Cell>> optimalPaths, Map &map)
 		}
 	}
 	outfile << std::endl;
-	for (int i = 0; i < map.agents.size(); i++)
+	
+	// Output agent start and goal positions
+	for (size_t i = 0; i < map.agents.size(); i++)
 	{
 		outfile << map.agents[i].len << " ";
 	}
 	outfile << std::endl;
-	for (int i = 0; i < map.agents.size(); i++)
+	
+	// Output individual agent paths
+	for (size_t i = 0; i < map.agents.size(); i++)
 	{
 		for (auto cell : optimalPaths[i])
 		{
@@ -39,11 +68,23 @@ void writeoutput(std::vector<std::vector<Cell>> optimalPaths, Map &map)
 	outfile.close();
 }
 
+/**
+ * @brief Generates random test cases for the CBS algorithm
+ * @param xx Width of the grid
+ * @param yy Height of the grid  
+ * @param sizes Number of agents to generate
+ * @param level Difficulty level (1=easy, 2=medium, 3=hard)
+ * 
+ * Creates a random map file with:
+ * - Random agent start and goal positions
+ * - Agents of different sizes based on the level
+ * - Collision avoidance during placement
+ */
 void randomlise(int xx, int yy, int sizes, int level)
 {
 	std::random_device rd;	// obtain a random number from hardware
 	std::mt19937 gen(rd()); // seed the generator
-	int len = int(0.3 * std::min(xx,yy));
+	int len = int(0.3 * std::min(xx,yy));  // Calculate agent size based on map dimensions
 	if (level == 1) // easy
 	{
 		std::ofstream outfile;
@@ -274,19 +315,29 @@ void randomlise(int xx, int yy, int sizes, int level)
 		outfile << std::endl;
 	}
 }
+/**
+ * @brief Main function - Entry point for the CBS algorithm
+ * 
+ * Loads a map file, runs the CBS algorithm to find conflict-free paths
+ * for all agents, and outputs the results.
+ */
 int main()
 {
+	// Performance tracking variables
 	int totaltime = 0;
 	int epoch = 1;
 	int success = 0;
-	int x = 50;
-	int y = 30;
-	int numberOfRobots = 8  ;
+	// Note: These variables were unused in original code - commenting out to fix warnings
+	// int x = 50;
+	// int y = 30;
+	// int numberOfRobots = 8;
 	int maxmiumT = 0;
 	int minT = INT_MAX;
 	std::vector<int> timeacc;
+	
 	for (int i = 0; i < epoch; i++)
 	{
+		// Uncomment this line to generate random test cases instead of using file input
 		//randomlise(x, y, numberOfRobots, 2);
 		auto started = std::chrono::high_resolution_clock::now();
 
